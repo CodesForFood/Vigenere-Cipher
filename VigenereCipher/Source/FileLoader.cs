@@ -7,53 +7,26 @@ using System.IO;
 
 namespace VigenereCipher.Source
 {
-    public class FileLoader
+    public static class FileLoader
     {
-        public static DirectoryInfo CurrentDir { get; private set; }
-        public static FileInfo CurrentFile {  get; private set; }
-        public string[] WholeText { get; private set; }
+        private static FileInfo CurrentFile { get; set; }
+        public static string[] WholeText { get; private set; }
 
-        public FileLoader() { SetDirectory(); }  
-        
-        public string[] ReReadText()
+        public static bool IsFileSet
         {
-            ReadFile();
-            return WholeText;
-        }
+            get { return (CurrentFile != null) && CurrentFile.Exists; }
+        } 
 
-        public  void SetDirectory()
+        public static void SetFile()
         {
-            Cipher.IO = "What is the directory of the plain text or encrypted file?";
-            string inputDir = Cipher.IO;
-
-            try
-            {
-                CurrentDir = new DirectoryInfo(inputDir);
-
-                if (CurrentDir.Exists) { SetFile(); }
-                else
-                {
-                    Cipher.IO = "404: Directory can not be found.";
-                    SetDirectory();
-                }
-            }
-            catch(Exception ex)
-            {
-                Cipher.IO = ex.Message + ": Inside SetDiretory";
-                SetDirectory();
-            }                   
-        }
-
-        private void SetFile()
-        {
-            Cipher.IO = "Looking in: " + CurrentDir.FullName;
-            Cipher.IO = "What is the name of the file? Include the extension.";
+            Cipher.IO = "Enter the name and path of the file. Include the extension.";
 
             string inputFile = Cipher.IO;
 
             try
             {
-                if ((CurrentFile = new FileInfo(Path.Combine(CurrentDir.FullName, inputFile))).Exists)
+                
+                if ((CurrentFile = new FileInfo(inputFile)).Exists)
                 {
                     Cipher.IO = "File succefully loaded";
                     ReadFile();
@@ -66,14 +39,12 @@ namespace VigenereCipher.Source
             }
             catch(Exception ex)
             {
-                Cipher.IO = ex.Message + ": Inside SetFile";
+                Cipher.Error(ex, "SetFile");
                 SetFile();
             }
-
-           
         }
 
-        private void ReadFile()
+        public static void ReadFile()
         {
             using (StreamReader read = new StreamReader(CurrentFile.FullName))
             {
@@ -84,22 +55,13 @@ namespace VigenereCipher.Source
             }
         }
 
-        public void PrintFile()
+        public static void PrintFile()
         {
             foreach (var line in WholeText) Cipher.IO = line;
         }
 
-        public static void WriteFile(List<string> fullText, bool isEncrypt)
+        public static void WriteFile(List<string> fullText)
         {
-            /* This puts the de/encrypted text into a new file
-             * Replace references of CurrentFile with testPath
-            string testPath = "";
-            if (isEncrypt)
-                testPath = Path.Combine(CurrentDir.FullName, "enc-" + CurrentFile.Name);
-            else
-                testPath = Path.Combine(CurrentDir.FullName, "dec-" + CurrentFile.Name);
-            */
-
             try
             {
                 using (StreamWriter write = new StreamWriter(CurrentFile.FullName, false, Encoding.Unicode))
